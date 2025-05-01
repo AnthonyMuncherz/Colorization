@@ -2,7 +2,7 @@
 
 A modern web application that colorizes grayscale images using deep learning models. This application provides an easy-to-use interface for colorizing black and white photos using two different AI models: ECCV16 and SIGGRAPH17.
 
-![Example Colorization Results](static/example_results.png)
+![Example Colorization Results](colorization\app-screenshot.png)
 
 ## Features
 
