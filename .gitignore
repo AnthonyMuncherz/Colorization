@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Model files
+model/*.caffemodel
+model/*.pth
+model/*.h5
+model/*.onnx
+model/*.pb
+model/checkpoints/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs and databases
+*.log
+*.sqlite
+
+# Local development
+instance/
+.webassets-cache
+
+# Uploaded and generated content
+static/uploads/*
+static/results/*
+!static/uploads/.gitkeep
+!static/results/.gitkeep
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/ 
