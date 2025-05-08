@@ -1,4 +1,3 @@
-
 from PIL import Image
 import numpy as np
 from skimage import color
@@ -44,4 +43,4 @@ def postprocess_tens(tens_orig_l, out_ab, mode='bilinear'):
 		out_ab_orig = out_ab
 
 	out_lab_orig = torch.cat((tens_orig_l, out_ab_orig), dim=1)
-	return color.lab2rgb(out_lab_orig.data.cpu().numpy()[0,...].transpose((1,2,0)))
+	return color.lab2rgb(out_lab_orig.data.cpu().numpy()[0,...].transpose((1,2,0))) 

@@ -5,6 +5,8 @@ import torch
 import matplotlib.pyplot as plt
 from colorizers import *
 import shutil
+import numpy as np
+from PIL import Image
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'uploads'
@@ -29,6 +31,11 @@ def allowed_file(filename):
 def process_image(image_path, filename_base):
     # Load and process image
     img = load_img(image_path)
+    
+    # Save the original image directly to static/results
+    original_path = f'static/results/{filename_base}_original.jpg'
+    Image.fromarray(img).convert('L').save(original_path)
+    
     (tens_l_orig, tens_l_rs) = preprocess_img(img, HW=(256,256))
     
     if torch.cuda.is_available():
@@ -44,7 +51,7 @@ def process_image(image_path, filename_base):
     plt.imsave(f'static/results/{filename_base}_siggraph17.png', out_img_siggraph17)
     
     return {
-        'original': f'uploads/{filename_base}.jpg',  # Path relative to static folder
+        'original': f'results/{filename_base}_original.jpg',
         'eccv16': f'results/{filename_base}_eccv16.png',
         'siggraph17': f'results/{filename_base}_siggraph17.png'
     }
@@ -62,13 +69,9 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            static_path = os.path.join('static/uploads', filename)
             
-            # Save to temporary location first
+            # Save to temporary location
             file.save(temp_path)
-            
-            # Copy to static folder for serving
-            shutil.copy2(temp_path, static_path)
             
             filename_base = os.path.splitext(filename)[0]
             results = process_image(temp_path, filename_base)
@@ -81,4 +84,9 @@ def upload_file():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000) 
+    # For development use only - in production, use a proper WSGI server
+    app.run(
+        host='0.0.0.0',  # Listen on all available interfaces
+        port=5000,       # Port number
+        debug=True      # Enable debug mode for development
+    ) 

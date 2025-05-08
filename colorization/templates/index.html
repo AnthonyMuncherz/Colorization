@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Image Colorization</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
     <style>
         .drop-zone {
             border: 2px dashed #4a5568;
@@ -12,38 +14,402 @@
         }
         .drop-zone:hover {
             border-color: #60a5fa;
-            background-color: #1f2937;
+            background-color: rgba(31, 41, 55, 0.5);
+            transform: scale(1.02);
         }
         body {
-            background-color: #111827;
+            background-color: #0f172a;
             color: #e5e7eb;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(29, 78, 216, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.15) 0px, transparent 50%);
+            background-attachment: fixed;
         }
         .card {
-            background-color: #1f2937;
-            border: 1px solid #374151;
+            background-color: rgba(17, 24, 39, 0.8);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen" x-data="{ showModal: false, showHowItWorks: false, showSocialImpact: false }">
     <div class="container mx-auto px-4 py-8">
-        <h1 class="text-4xl font-bold text-center text-blue-400 mb-8">Image Colorization</h1>
+        <h1 class="text-5xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 mb-8 animate__animated animate__fadeInDown">Image Colorization</h1>
         
+        <!-- Info Buttons -->
+        <div class="text-center mb-8 space-x-4">
+            <button @click="showModal = true" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50 animate__animated animate__fadeIn">
+                Project Information
+            </button>
+            <button @click="showHowItWorks = true" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:ring-opacity-50 animate__animated animate__fadeIn">
+                How It Works
+            </button>
+            <button @click="showSocialImpact = true" class="bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-400 focus:ring-opacity-50 animate__animated animate__fadeIn">
+                Social Impact
+            </button>
+        </div>
+
+        <!-- Project Info Modal -->
+        <div x-show="showModal" 
+             class="fixed inset-0 z-50 overflow-y-auto modal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 py-8">
+                <div class="fixed inset-0 bg-black opacity-50" @click="showModal = false"></div>
+                <div class="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-4xl w-full mx-auto p-8 modal-content shadow-2xl border border-gray-700">
+                    <div class="absolute top-0 right-0 mt-4 mr-4">
+                        <button @click="showModal = false" class="bg-gray-800 hover:bg-gray-700 rounded-full p-2 text-gray-400 hover:text-white transition-all duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-8">
+                        <!-- Header Section with Logo -->
+                        <div class="text-center space-y-6 pb-6 border-b border-gray-700">
+                            <div class="inline-block p-2 rounded-full bg-blue-500/10 mb-4">
+                                <svg class="w-12 h-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                            </div>
+                            <h2 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-blue-600 animate__animated animate__fadeInDown">UNIVERSITI TEKNOLOGI MARA</h2>
+                            <div class="h-1 w-32 bg-gradient-to-r from-blue-400 to-blue-600 mx-auto rounded-full"></div>
+                        </div>
+
+                        <!-- Main Content -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <!-- Left Column -->
+                            <div class="space-y-6">
+                                <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50">
+                                    <h3 class="text-2xl font-semibold text-blue-400 mb-4">Project Details</h3>
+                                    <div class="space-y-4">
+                                        <div>
+                                            <h4 class="text-lg font-medium text-gray-300">Title</h4>
+                                            <p class="text-xl text-blue-300">Grayscale Image Colorization Using Deep Learning</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-lg font-medium text-gray-300">Student</h4>
+                                            <p class="text-xl text-blue-300">Muhammad Ajmal Danish Bin Azmi</p>
+                                            <p class="text-sm text-gray-400">2022887044</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-lg font-medium text-gray-300">Program</h4>
+                                            <p class="text-gray-400">Bachelor of Information System (Hons.) Intelligent Systems Engineering</p>
+                                        </div>
+                                        <div>
+                                            <h4 class="text-lg font-medium text-gray-300">Submission Date</h4>
+                                            <p class="text-gray-400">October 2024</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50">
+                                    <h3 class="text-2xl font-semibold text-blue-400 mb-4">Supervision</h3>
+                                    <div class="space-y-2">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="bg-blue-500/10 rounded-full p-2">
+                                                <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h4 class="text-lg font-medium text-gray-300">Supervisor</h4>
+                                                <p class="text-blue-300">Dr. Azlin Ahmad</p>
+                                                <p class="text-sm text-gray-400">College of Computing, Informatics and Mathematics</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="space-y-6">
+                                <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50">
+                                    <h3 class="text-2xl font-semibold text-blue-400 mb-4">Abstract</h3>
+                                    <div class="prose prose-invert max-w-none">
+                                        <p class="text-gray-300 leading-relaxed">
+                                            Adding color to grayscale pictures is now one of the big uses of deep learning in computer vision, for instance, in tasks such as reconstructing historical images, enhancing medical images, and making art more beautiful. Because traditional approaches are done hand-in or reference photographs, they are neither always consistent nor scalable.
+                                        </p>
+                                        <p class="text-gray-300 leading-relaxed mt-4">
+                                            In this work, we use powerful deep learning techniques, including convolutional neural networks (CNNs) and generative adversarial networks (GANs), to successfully perform the colorization process. It leverages the predictive capabilities of deep neural networks to extract semantic and contextual information from a huge corpus of color and grayscale photo pairs.
+                                        </p>
+                                        <p class="text-gray-300 leading-relaxed mt-4">
+                                            This results in aesthetically coherent and colorful output. Some of the most significant new features include adversarial loss for realistic rendering and a feature extraction pipeline at multiple scales, including local and global picture context.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50">
+                                    <h3 class="text-2xl font-semibold text-blue-400 mb-4">Key Features</h3>
+                                    <ul class="space-y-3">
+                                        <li class="flex items-start space-x-3">
+                                            <svg class="w-6 h-6 text-green-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-gray-300">Advanced deep learning models (ECCV16 & SIGGRAPH17)</span>
+                                        </li>
+                                        <li class="flex items-start space-x-3">
+                                            <svg class="w-6 h-6 text-green-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-gray-300">Real-time processing capabilities</span>
+                                        </li>
+                                        <li class="flex items-start space-x-3">
+                                            <svg class="w-6 h-6 text-green-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-gray-300">Support for multiple image formats</span>
+                                        </li>
+                                        <li class="flex items-start space-x-3">
+                                            <svg class="w-6 h-6 text-green-400 mt-1 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-gray-300">User-friendly web interface</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How It Works Modal -->
+        <div x-show="showHowItWorks" 
+             class="fixed inset-0 z-50 overflow-y-auto modal" 
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4">
+                <div class="fixed inset-0 bg-black opacity-50" @click="showHowItWorks = false"></div>
+                <div class="relative bg-gray-900 rounded-xl max-w-4xl w-full mx-auto p-8 modal-content">
+                    <button @click="showHowItWorks = false" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                    
+                    <div class="space-y-8">
+                        <h2 class="text-3xl font-bold text-center text-purple-400 animate__animated animate__fadeInDown">How Image Colorization Works</h2>
+                        
+                        <!-- Technical Explanation -->
+                        <div class="space-y-4 animate__animated animate__fadeIn">
+                            <h3 class="text-2xl font-semibold text-purple-300">Technical Process</h3>
+                            <div class="prose prose-lg text-gray-300 max-w-none">
+                                <p class="mb-4">Our colorization system uses two powerful deep learning models:</p>
+                                <ul class="list-disc list-inside space-y-2 ml-4">
+                                    <li><span class="text-purple-400 font-semibold">ECCV16:</span> This model uses a deep Convolutional Neural Network (CNN) that analyzes the grayscale image's patterns and textures to predict appropriate colors based on learned patterns from millions of training images.</li>
+                                    <li><span class="text-purple-400 font-semibold">SIGGRAPH17:</span> An advanced model that combines both local and global image features to produce more vibrant and contextually accurate colors.</li>
+                                </ul>
+                                <p class="mt-4">The process involves:</p>
+                                <ol class="list-decimal list-inside space-y-2 ml-4">
+                                    <li>Converting the input image to L*a*b* color space</li>
+                                    <li>Processing the L (lightness) channel through the neural network</li>
+                                    <li>Predicting the a* and b* color channels</li>
+                                    <li>Combining all channels to produce the final colored image</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <!-- Analogy -->
+                        <div class="space-y-4 animate__animated animate__fadeIn">
+                            <h3 class="text-2xl font-semibold text-purple-300">Simple Analogy</h3>
+                            <div class="bg-gray-800 rounded-lg p-6 text-gray-300">
+                                <p class="mb-4">Imagine you're a master painter with a black and white photograph, but instead of using your own creativity to add colors, you have two highly trained assistants:</p>
+                                <div class="space-y-4">
+                                    <div class="flex items-start space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-6 h-6 text-purple-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <p>The first assistant (ECCV16) is like a detail-oriented painter who has studied thousands of similar paintings and knows what colors typically go where - sky should be blue, grass should be green, etc.</p>
+                                    </div>
+                                    <div class="flex items-start space-x-4">
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-6 h-6 text-purple-400 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <p>The second assistant (SIGGRAPH17) is like an artistic director who looks at the whole picture and ensures all the colors work together harmoniously, adding extra vibrancy and life to the image.</p>
+                                    </div>
+                                </div>
+                                <p class="mt-4 text-purple-300 italic">Together, these "assistants" work to transform your black and white photo into a naturally colored image, just as if it was originally captured in color!</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Impact Modal -->
+        <div x-show="showSocialImpact" 
+             class="fixed inset-0 z-50 overflow-y-auto modal"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             style="display: none;">
+            <div class="flex items-center justify-center min-h-screen px-4 py-8">
+                <div class="fixed inset-0 bg-black opacity-50" @click="showSocialImpact = false"></div>
+                <div class="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-5xl w-full mx-auto p-8 modal-content shadow-2xl border border-gray-700">
+                    <div class="absolute top-0 right-0 mt-4 mr-4">
+                        <button @click="showSocialImpact = false" class="bg-gray-800 hover:bg-gray-700 rounded-full p-2 text-gray-400 hover:text-white transition-all duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Header -->
+                    <div class="text-center mb-12">
+                        <div class="inline-block p-3 rounded-full bg-gradient-to-br from-green-400/20 to-emerald-500/20 mb-4">
+                            <svg class="w-12 h-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-500 mb-4">Societal Impact</h2>
+                        <p class="text-gray-400 text-lg max-w-2xl mx-auto">Discover how our image colorization technology is making a meaningful difference across various sectors of society</p>
+                    </div>
+
+                    <!-- Main Content Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Historical Preservation -->
+                        <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:bg-gray-800/70">
+                            <div class="bg-green-500/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-3">Historical Preservation</h3>
+                            <p class="text-gray-300">Breathe new life into historical photographs, helping preserve our cultural heritage and make history more engaging for modern audiences.</p>
+                        </div>
+
+                        <!-- Medical Imaging -->
+                        <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:bg-gray-800/70">
+                            <div class="bg-green-500/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-3">Medical Advancement</h3>
+                            <p class="text-gray-300">Enhance medical imaging for better diagnosis and treatment planning, making healthcare more accurate and accessible.</p>
+                        </div>
+
+                        <!-- Educational Enhancement -->
+                        <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:bg-gray-800/70">
+                            <div class="bg-green-500/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-3">Educational Impact</h3>
+                            <p class="text-gray-300">Make learning materials more engaging and help students better understand historical contexts through colorized imagery.</p>
+                        </div>
+
+                        <!-- Artistic Expression -->
+                        <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:bg-gray-800/70">
+                            <div class="bg-green-500/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-3">Artistic Expression</h3>
+                            <p class="text-gray-300">Enable artists and creators to explore new forms of artistic expression by transforming black and white imagery into vibrant artworks.</p>
+                        </div>
+
+                        <!-- Research & Development -->
+                        <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:bg-gray-800/70">
+                            <div class="bg-green-500/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-3">Research & Innovation</h3>
+                            <p class="text-gray-300">Advance AI technology and computer vision research, paving the way for future innovations in image processing and analysis.</p>
+                        </div>
+
+                        <!-- Cultural Heritage -->
+                        <div class="bg-gray-800/50 rounded-xl p-6 backdrop-blur-sm border border-gray-700/50 transform transition-all duration-300 hover:scale-105 hover:bg-gray-800/70">
+                            <div class="bg-green-500/10 rounded-full p-3 w-12 h-12 flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-semibold text-green-400 mb-3">Cultural Heritage</h3>
+                            <p class="text-gray-300">Help preserve and revitalize cultural heritage by bringing historical documents and artifacts to life through colorization.</p>
+                        </div>
+                    </div>
+
+                    <!-- Footer Quote -->
+                    <div class="mt-12 text-center">
+                        <blockquote class="text-lg italic text-gray-400 max-w-3xl mx-auto">
+                            "By bridging the gap between past and present through colorization, we're not just preserving history – we're making it more accessible and engaging for future generations."
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         {% if error %}
-        <div class="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded relative mb-4" role="alert">
+        <div class="bg-red-900 border border-red-700 text-red-100 px-4 py-3 rounded-lg relative mb-4 fade-in" role="alert">
             <span class="block sm:inline">{{ error }}</span>
         </div>
         {% endif %}
 
-        <div class="card rounded-lg shadow-xl p-6 mb-8">
+        <div class="card rounded-xl shadow-2xl p-8 mb-8 fade-in">
             <form action="/" method="post" enctype="multipart/form-data" class="space-y-4">
-                <div class="drop-zone p-8 text-center rounded-lg">
-                    <label for="file" class="cursor-pointer">
-                        <div class="text-gray-300">
-                            <svg class="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="drop-zone p-12 text-center rounded-xl relative overflow-hidden group">
+                    <label for="file" class="cursor-pointer block">
+                        <div class="text-gray-300 relative z-10">
+                            <svg class="mx-auto h-16 w-16 mb-4 float-animation text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
                             </svg>
-                            <p class="text-lg">Drop your grayscale image here or click to upload</p>
-                            <p class="text-sm text-gray-400 mt-2">Supports PNG, JPG, JPEG</p>
+                            <p class="text-xl font-semibold mb-2">Drop your grayscale image here or click to upload</p>
+                            <p class="text-sm text-gray-400">Supports PNG, JPG, JPEG</p>
                         </div>
                         <input type="file" id="file" name="file" class="hidden" accept=".png,.jpg,.jpeg" onchange="form.submit()">
                     </label>
@@ -52,18 +418,18 @@
         </div>
 
         {% if results %}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="card rounded-lg shadow-xl p-4">
-                <h3 class="text-lg font-semibold mb-4 text-center text-blue-400">Original</h3>
-                <img src="{{ url_for('static', filename=results.original) }}" alt="Original" class="w-full rounded">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 fade-in">
+            <div class="card rounded-xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
+                <h3 class="text-xl font-semibold mb-4 text-center text-blue-400">Original</h3>
+                <img src="{{ url_for('static', filename=results.original) }}" alt="Original Image" class="w-full h-auto rounded-lg shadow-lg object-contain">
             </div>
-            <div class="card rounded-lg shadow-xl p-4">
-                <h3 class="text-lg font-semibold mb-4 text-center text-blue-400">ECCV16</h3>
-                <img src="{{ url_for('static', filename=results.eccv16) }}" alt="ECCV16" class="w-full rounded">
+            <div class="card rounded-xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
+                <h3 class="text-xl font-semibold mb-4 text-center text-blue-400">ECCV16</h3>
+                <img src="{{ url_for('static', filename=results.eccv16) }}" alt="ECCV16 Colorized" class="w-full h-auto rounded-lg shadow-lg object-contain">
             </div>
-            <div class="card rounded-lg shadow-xl p-4">
-                <h3 class="text-lg font-semibold mb-4 text-center text-blue-400">SIGGRAPH17</h3>
-                <img src="{{ url_for('static', filename=results.siggraph17) }}" alt="SIGGRAPH17" class="w-full rounded">
+            <div class="card rounded-xl shadow-2xl p-6 transform hover:scale-105 transition-all duration-300">
+                <h3 class="text-xl font-semibold mb-4 text-center text-blue-400">SIGGRAPH17</h3>
+                <img src="{{ url_for('static', filename=results.siggraph17) }}" alt="SIGGRAPH17 Colorized" class="w-full h-auto rounded-lg shadow-lg object-contain">
             </div>
         </div>
         {% endif %}

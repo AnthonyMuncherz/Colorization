@@ -6,14 +6,16 @@ A modern web application that colorizes grayscale images using deep learning mod
 
 ## Features
 
-- 🎨 Two colorization models:
+- 🎨 Multiple colorization models:
   - ECCV16: Classic colorization model
   - SIGGRAPH17: Enhanced colorization with improved color vibrancy
+  - Custom: Train your own custom colorization model
 - 🌐 Web-based interface with dark theme
 - 📤 Drag and drop file upload
 - 🖼️ Support for PNG, JPG, and JPEG formats
 - 📱 Responsive design for all devices
 - ⚡ Real-time processing
+- 🧠 Custom model training capabilities
 
 ## Installation
 
@@ -66,7 +68,43 @@ colorization/
 │   └── uploads/       # User uploads
 ├── templates/          # HTML templates
 └── requirements.txt    # Python dependencies
+
+training/               # Custom model training
+├── model.py           # Custom model architecture
+├── dataset.py         # Data loading utilities
+├── train.py           # Training script
+├── evaluate.py        # Evaluation script
+├── colorizer.py       # Integration with main app
+├── setup.py           # Environment setup script
+└── README.md          # Training documentation
 ```
+
+## Training Your Own Colorization Model
+
+This project now includes a complete framework for training your own custom colorization models:
+
+1. Set up the training environment:
+```bash
+cd training
+python setup.py --all
+```
+
+2. Train a custom model:
+```bash
+python train.py --data_dir training/data
+```
+
+3. Evaluate your model:
+```bash
+python evaluate.py --data_dir path/to/test/images --model_path training/checkpoints/best_model.pth
+```
+
+4. Integrate with the main app:
+```bash
+python colorizer.py
+```
+
+For detailed instructions on training custom models, see the [training README](training/README.md).
 
 ## Technical Details
 
@@ -75,6 +113,7 @@ colorization/
 - **Models**: PyTorch-based colorization models
   - ECCV16: Learning Representations for Automatic Colorization
   - SIGGRAPH17: Real-Time User-Guided Image Colorization
+  - Custom: User-trained colorization model with attention mechanism
 
 ## Requirements
 
@@ -94,6 +133,10 @@ To modify the application:
 2. Backend changes:
    - Main application logic in `app.py`
    - Image processing in `colorizers/` directory
+
+3. Model development:
+   - Training framework in `training/` directory
+   - Custom model architecture in `training/model.py`
 
 ## License
 
